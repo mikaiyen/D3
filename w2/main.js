@@ -22,9 +22,45 @@ function type(d){
 }
 
 
+function filterData(data){ 
+    return data.filter(
+        d => { 
+            return(
+                d.release_year > 1999 && d.release_year < 2010 && d.revenue > 0 &&
+                d.budget > 0 &&
+                d.genre &&
+                d.title
+            );
+        }
+    );
+}
+
+function prepareBarChartData(data){ console.log(data);
+    const dataMap = d3.rollup(
+        data,
+        v => d3.sum(v, leaf => leaf.revenue), //將revenue加總 
+        d => d.genre //依電影分類groupby
+    );
+    const dataArray = Array.from(dataMap, d=>({genre:d[0], revenue:d[1]})); 
+    return dataArray;
+}
+
+//Main
+function ready(movies){
+    const moviesClean = filterData(movies); 
+    const barChartData = prepareBarChartData(moviesClean).sort(
+        (a,b)=>{
+            return d3.descending(a.revenue, b.revenue);
+        } 
+    );
+    console.log(barChartData);
+}
+
+
 d3.csv('data/movies.csv',type).then( 
     res=>{
-        console.log(res); 
+        ready(res);
+        //console.log(res); 
         // debugger;
     }
 )
