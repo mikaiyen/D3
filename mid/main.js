@@ -1,186 +1,118 @@
-//Data utilities
-//遇到NA就設定為undefined, 要不然就維持原本的字串
-const parseNA = string => (string === "NA" ? undefined : string); 
-//日期處理
-const parseDate = string => d3.timeParse('%Y-%m-%d')(string);
+let data = []
+async function getData() {
+    // 取資料
+    dataGet =await  d3.csv('data/TSMC2013-2022.csv')
+    data = dataGet
+    console.log(data)
+    drawBarChart()
+};
+getData()
 
-// + 轉換成數字
-function type(d){
-    const date = parseDate(d.release_date);
-     return {
-        budget:+d.budget,
-        genre:parseNA(d.genre),
-        genres:JSON.parse(d.genres).map(d=>d.name),
-        homepage:parseNA(d.homepage),
-        id:+d.id,
-        imdb_id:parseNA(d.imdb_id), 
-        original_language:parseNA(d.original_language), 
-        overview:parseNA(d.overview),
-        popularity:+d.popularity, 
-        poster_path:parseNA(d.poster_path), 
-        production_countries:JSON.parse(d.production_countries), 
-        release_date:date,
-        release_year:date.getFullYear(),
-        revenue:+d.revenue,
-        runtime:+d.runtime,
-        tagline:parseNA(d.tagline),
-        title:parseNA(d.title),
-        vote_average:+d.vote_average,
-        vote_count:+d.vote_count,
-    }
+// RWD
+function drawBarChart(){
+    // 刪除原本的svg.charts，重新渲染改變寬度的svg
+    d3.select('.chart svg').remove();
+
+    // RWD 的svg 寬高
+    const rwdSvgWidth = parseInt(d3.select('.chart').style('width')),
+          rwdSvgHeight = rwdSvgWidth,
+          margin = 20,
+          marginBottom = 100
+
+    const svg = d3.select('.chart')
+                  .append('svg')
+                  .attr('width', rwdSvgWidth)
+                  .attr('height', rwdSvgHeight);
+
+     // map 資料集
+     const xData = data.map((i) => i['DateTime']);
+
+     // 設定要給 X 軸用的 scale 跟 axis
+     const xScale = d3.scaleBand()
+                    .domain(xData)
+                    .range([margin*2, rwdSvgWidth - margin]) // 寬度
+                    .padding(0.2)
+
+     const xAxis = d3.axisBottom(xScale)
+
+     // 呼叫繪製x軸、調整x軸位置
+     const xAxisGroup = svg.append("g")
+                         .call(xAxis)
+                         .attr("transform", `translate(0,${rwdSvgHeight - marginBottom})`)
+
+     // 設定要給 Y 軸用的 scale 跟 axis
+     const yScale = d3.scaleLinear()
+                    .domain([0, 600])
+                    .range([rwdSvgHeight - marginBottom, margin]) // 數值要顛倒，才會從低往高排
+                    .nice() // 補上終點值
+
+     const yAxis = d3.axisLeft(yScale)
+                    .ticks(5)
+                    .tickSize(3)
+
+     // 呼叫繪製y軸、調整y軸位置
+     const yAxisGroup = svg.append("g")
+                         .call(yAxis)
+                         .attr("transform", `translate(${margin*2},0)`)
+
+     const subgroups =  Object.keys(data[0]).slice(1)
+
+     // 第二條X軸的比例尺，用來設定多條bar的位置
+     const xSubgroup = d3.scaleBand()
+                         .domain(subgroups)
+                         .range([0, xScale.bandwidth()])
+                         .padding([0.05])
+
+     // 設定不同 subgorup bar的顏色
+     const color = d3.scaleOrdinal()
+     .domain(subgroups)
+     .range(['#ff2d85','#4a4ae0','#4daf4a', '#f29909'])
+
+
+     // 開始建立長條圖
+     const bar = svg.append('g')
+                    .selectAll('g')
+                    .data(data)
+                    .join('g')
+                    .attr('transform',  d => `translate(${xScale(d['年度'])}, 0)`)
+                    .selectAll('rect')
+                    .data(d => {
+                    return subgroups.map(key=>{
+                         return {key:key, value:d[key]};})
+                    })
+                    .join('rect')
+                    .attr('x', d => xSubgroup(d.key))
+                    .attr("y", d => yScale(d.value))
+                    .attr("width", xSubgroup.bandwidth())
+                    .attr("height", d =>{
+                         return (rwdSvgHeight-marginBottom) - yScale(d.value)})
+                    .attr("fill", d => color(d.key))
+                    .style('cursor', 'pointer')
+
+     // 加上下方分類標籤
+     const tagsWrap =  svg.append('g')
+          .selectAll('g')
+          .attr('class', 'tags')
+          .data(subgroups)
+          .enter()
+          .append('g')
+          .attr('transform', "translate(-70,0)")
+     
+     tagsWrap.append('rect')
+          .attr('x', (d,i)=> (i+1)*marginBottom*1.3)
+          .attr('y', rwdSvgHeight-marginBottom/2)
+          .attr('width', 20)
+          .attr('height', 20)
+          .attr('fill', d => color(d))
+
+     tagsWrap.append('text')
+          .attr('x', (d,i)=> (i+1)*marginBottom*1.3)
+          .attr('y', rwdSvgHeight-10)
+          .style('fill', '#000')
+          .style('font-size', '12px')
+          .style('font-weight', 'bold')
+          .style("text-anchor", 'middle')
+          .text(d=>d)
 }
 
-//Data selection
-function filterData(data){ 
-    return data.filter(
-        d => { 
-            return(
-                d.release_year > 1999 && d.release_year < 2010 &&
-                d.revenue > 0 &&
-                d.budget > 0 &&
-                d.genre &&
-                d.title 
-            );
-        }
-    );
-}
-
-function prepareBarChartData(data){ 
-    console.log(data);
-    const dataMap = d3.rollup(
-        data,
-        v => d3.sum(v, leaf => leaf.revenue), //將revenue加總 
-        d => d.genre //依電影分類groupby
-    );
-    const dataArray = Array.from(dataMap, d=>({genre:d[0], revenue:d[1]})); 
-    return dataArray;
-}
-
-
-function setupCanvas(barChartData){
-    const svg_width = 600;
-    const svg_height = 500;
-    const chart_margin = {
-        top:80,
-        right:40,
-        bottom:40,
-        left:80
-    };
-    const chart_width = svg_width - (chart_margin.left + chart_margin.right); 
-    const chart_height = svg_height - (chart_margin.top + chart_margin.bottom);
-    const this_svg = d3
-        .select('.bar-chart-container')
-        .append('svg') 
-        .attr('width', svg_width)
-        .attr('height',svg_height)
-        .append('g') 
-        .attr('transform',`translate(${chart_margin.left},${chart_margin.top})`);
-    //scale
-    //V1.d3.extent find the max & min in revenue
-    const xExtent = d3
-        .extent(barChartData, d=>d.revenue);
-    const xScale_v1 = d3
-        .scaleLinear()
-        .domain(xExtent)
-        .range([0,chart_width]); 
-    //V2.0 ~ max
-    const xMax = d3
-        .max(barChartData, d=>d.revenue);
-    const xScale_v2 = d3
-        .scaleLinear()
-        .domain([0, xMax])
-        .range([0,chart_width]); 
-    //V3.Short writing for v2
-    const xScale_v3 = d3
-        .scaleLinear([0,xMax],[0, chart_width]);
-    //垂直空間的分配 - 平均分布給各種類
-    const yScale = d3
-        .scaleBand()
-        .domain(barChartData.map(d=>d.genre))
-        .rangeRound([0, chart_height])
-        .paddingInner(0.25);
-    //Draw bars
-    const bars = this_svg
-        .selectAll('.bar')
-        .data(barChartData)
-        .enter()
-        .append('rect')
-        .attr('class','bar')
-        .attr('x',0) 
-        .attr('y',d=>yScale(d.genre)) 
-        .attr('width',d=>xScale_v3(d.revenue)) 
-        .attr('height',yScale.bandwidth()) 
-        .style('fill','dodgerblue');
-    //Draw header
-    const header = this_svg
-        .append('g')
-        .attr('class','bar-header') 
-        .attr('transform',`translate(0,${-chart_margin.top/2})`)
-        .append('text'); 
-    header
-        .append('tspan')
-        .text('Total revenue by genre in $US'); 
-    header
-        .append('tspan')
-        .text('Years:2000-2009')
-        .attr('x',0)
-        .attr('y',20)
-        .style('font-size','0.8em')
-        .style('fill','#555');
-    //tickSizeInner : the length of the tick lines
-    //tickSizeOuter : the length of the square ends of the domain path 
-    const xAxis = d3
-        .axisTop(xScale_v3)
-        .tickFormat(formatTicks) 
-        .tickSizeInner(-chart_height) 
-        .tickSizeOuter(0);
-
-    const xAxisDraw = this_svg
-        .append('g') .attr('class','x axis')
-        .call(xAxis);
-
-    const yAxis = d3
-        .axisLeft(yScale)
-        .tickSize(0); 
-    const yAxisDraw = this_svg
-        .append('g')
-        .attr('class','y axis')
-        .call(yAxis); 
-    yAxisDraw
-        .selectAll('text')
-        .attr('dx','-0.6em');
-
-
-}
-
-// Data tool
-function formatTicks(d){ 
-    return d3
-        .format('~s')(d) 
-        .replace('M','mil') 
-        .replace('G','bil') 
-        .replace('T','tri')
-}
-
-
-
-//Main
-function ready(movies){
-    // const moviesClean = filterData(movies); 
-    const barChartData = prepareBarChartData(moviesClean).sort(
-        (a,b)=>{
-            return d3.descending(a.revenue, b.revenue);
-        } 
-    );
-    console.log(barChartData);
-    setupCanvas(barChartData);
-}
-
-
-d3.csv('data/power.csv',type).then( 
-    res=>{
-        ready(res);
-        //console.log(res); 
-        // debugger;
-    }
-)
+d3.select(window).on('resize', drawBarChart);

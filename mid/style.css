@@ -1,11 +1,5 @@
-svg{
-    border: 1px solid #ccc;
-}
-
-.axis .domain{ 
-    stroke:none;
-}
-    
-.x line{
-    stroke: white;
+.chart{
+    width: 100%;
+    min-width: 300px;
+    margin: auto;
 }
