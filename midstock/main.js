@@ -58,26 +58,10 @@ function setupCanvas(barChartData,rout){
     //scale
     const xMax = d3
         .max(barChartData, d=>d.col);
-
-    /*
-    //V1.d3.extent find the max & min in revenue
-    const xExtent = d3
-        .extent(barChartData, d=>d.col);
-    const xScale_v1 = d3
-        .scaleLinear()
-        .domain(xExtent)
-        .range([0,chart_width]); 
-    //V2.0 ~ max
-    const xScale_v2 = d3
-        .scaleLinear()
-        .domain([0, xMax])
-        .range([0,chart_width]); 
-
-    */
-    
     //V3.Short writing for v2
     const xScale_v3 = d3
         .scaleLinear([0,xMax],[0, chart_width]);
+
     //垂直空間的分配 - 平均分布給各種類
     const yScale = d3
         .scaleBand()
@@ -92,8 +76,8 @@ function setupCanvas(barChartData,rout){
         .append('rect')
         .attr('class','bar')
         .attr('x',0) 
-        .attr('y',d=>yScale(d.row)) 
-        .attr('width',d=>xScale_v3(d.col)) 
+        .attr('y',d=>yScale(d.row))
+        .attr('width',d=>xScale_v3(d.col))
         .attr('height',yScale.bandwidth()) 
         .style('fill','dodgerblue');
     //Draw header
@@ -153,13 +137,17 @@ function prepareBarChartData(data){
     // console.log("data",data);
     const dataMap = d3.rollup(
         data,
-        v => d3.sum(v, leaf => leaf.totalvol),
+        v => ({
+            totalvol:d3.sum(v, leaf => leaf.totalvol),
+            retailvol:d3.sum(v, leaf => leaf.totalvol),
+        }),
         //d => d.release_year,
         d => d.release_mon
         
     );
-    const dataArray = Array.from(dataMap, d=>({row:d[0], col:d[1]})); 
-    // console.log(dataArray);
+    const rollupValues = Object.values(dataMap);
+    const dataArray = Array.from(dataMap, d=>({row:d[0], col:d[1].totalvol,col2:d[1].retailvol})); 
+    console.log(dataArray);
 
 
     return dataArray;
@@ -173,7 +161,7 @@ function ready(data){
     const barChartData = prepareBarChartData(data)
         .sort(
             (a,b)=>{
-                return d3.descending(a.release_year, b.release_year);
+                return d3.descending(a.release_mon, b.release_mon);
             } 
         );
     console.log("barChartData", barChartData);
