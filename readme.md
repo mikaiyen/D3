@@ -127,3 +127,4 @@
   - 長條圖或圓餅圖對比不同國家或區域之間的指標值  
   - 以點擊、滑鼠移動、下拉式選單等互動方式深入探究數據  
   - all: https://mikaiyen.github.io/D3/final_merged/
+  - my part: https://mikaiyen.github.io/D3/final/
