@@ -1,4 +1,4 @@
-d3.csv("../../data/join_database_w_definitions.csv").then(
+d3.csv("data/join_database_w_definitions.csv").then(
     res => {
         ready(res)
     }
