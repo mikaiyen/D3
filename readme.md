@@ -39,7 +39,7 @@
   - 練習將資料 (如簡單的數字或清單) 綁定到網頁 SVG 元素中。
 
 - **示範成果**  
-  - 
+  - https://mikaiyen.github.io/D3/w1/e2/
 
 ---
 
@@ -55,7 +55,7 @@
   - 瞭解如何利用 `domain`、`range` 來控制圖表的大小、寬度與高度。
 
 - **示範成果**  
-  - 
+  - https://mikaiyen.github.io/D3/w2-extend/
 
 ---
 
@@ -71,7 +71,7 @@
   - 強化視覺化作品的使用者體驗與吸引力。
 
 - **示範成果**  
-  - 
+  - https://mikaiyen.github.io/D3/w3/
 
 ---
 
@@ -87,7 +87,7 @@
   - 幫助讀者 / 使用者更直觀地瀏覽圖表資訊。
 
 - **示範成果**  
-  - 
+  - https://mikaiyen.github.io/D3/w4/
 
 ---
 
@@ -103,7 +103,7 @@
      - 實作長條圖  
 
 - **示範成果**  
-  - 
+  - https://mikaiyen.github.io/D3/midterm/
 
 ---
 
@@ -126,3 +126,4 @@
   - 動態地圖顯示全球各國就業率 / GDP / 收入差異  
   - 長條圖或圓餅圖對比不同國家或區域之間的指標值  
   - 以點擊、滑鼠移動、下拉式選單等互動方式深入探究數據  
+  - all: https://mikaiyen.github.io/D3/final_merged/
