@@ -176,6 +176,9 @@ function setupCanvas(barChartData, movieClean){
         //get data
         const thisBarData = d3.select(this).data()[0]; 
         
+        console.log(d3.select(this))
+
+
         const bodyData = [
             ['Budget', thisBarData.budget],
             ['Revenue', thisBarData.revenue],
@@ -229,7 +232,6 @@ function chooseData(metric, movieClean){
 //Main
 function ready(movies){
     const moviesClean = filterData(movies); 
-    //Get Top 15 revenue movies
     const revenueData = chooseData("revenue",moviesClean); 
     console.log(revenueData)
     setupCanvas(revenueData, moviesClean);
@@ -239,7 +241,5 @@ function ready(movies){
 d3.csv('data/movies.csv',type).then( 
     res=>{
         ready(res);
-        //console.log(res); 
-        // debugger;
     }
 )

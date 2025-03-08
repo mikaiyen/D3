@@ -5,7 +5,9 @@ const friends = {
 };
 
 const thisSVG = d3.select('svg');
+
 d3.selectAll('button').on('click',click);
+
 function click(){
     const thisFruitList = friends[this.dataset.name]; 
     update(thisFruitList);

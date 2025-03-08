@@ -59,7 +59,7 @@ function prepareBarChartData(data){
 
 function setupCanvas(barChartData, movieClean){
     //一開始預設指標是revenue
-    let metric = 'revenue';
+    let metric = 'revenue'; // let 使用在變數可能會被重新指定值
     function click(){
         metric = this.dataset.name;
         const thisData = chooseData(metric, movieClean); 
